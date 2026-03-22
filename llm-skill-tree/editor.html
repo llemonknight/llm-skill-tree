@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM 星盤編輯器</title>
+    <!-- 引入與前台相同的樣式檔以保持預覽一致性 -->
+    <link rel="stylesheet" href="styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Sans+TC:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* 編輯器覆蓋樣式與版面配置 */
+        body {
+            display: flex;
+            flex-direction: row;
+            /* 左右並排 */
+            overflow: hidden;
+        }
+
+        #editor-sidebar {
+            width: 400px;
+            min-width: 280px;
+            max-width: 700px;
+            background: #1a1e29;
+            border-right: 1px solid #4a5568;
+            height: 100vh;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        /* 拖曳調整側邊欄寬度的把手 */
+        #resize-handle {
+            width: 6px;
+            cursor: col-resize;
+            background: #4a5568;
+            height: 100vh;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        #resize-handle:hover,
+        #resize-handle.active {
+            background: var(--active-border);
+        }
+
+        #app {
+            flex: 1;
+            /* 佔滿剩餘空間 */
+            position: relative;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--active-border);
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: white;
+            border-radius: 4px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn {
+            background: #38b2ac;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: #4fd1c5;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+        }
+
+        .btn-danger:hover {
+            background: #fc8181;
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #718096;
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid #4a5568;
+            margin: 20px 0;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 3px;
+        }
+
+        /* 讓預覽區的節點滑鼠游標都是指標，方便點擊 */
+        #preview-container .node {
+            cursor: pointer !important;
+        }
+
+        /* 被選取的節點強調顯示 */
+        .node.selected {
+            border-color: #f6e05e;
+            box-shadow: 0 0 20px rgba(246, 224, 94, 0.8);
+            transform: translate(-50%, -50%) scale(1.1);
+            z-index: 10;
+        }
+
+        /* 學習資源輸入列樣式 */
+        .resource-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .resource-row input {
+            flex: 1;
+            padding: 6px;
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .resource-row .btn-remove-res {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .resource-row .btn-remove-res:hover {
+            background: #fc8181;
+        }
+
+        #btn-add-res {
+            background: none;
+            border: 1px dashed #4a5568;
+            color: #a0aec0;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        #btn-add-res:hover {
+            border-color: var(--active-border);
+            color: var(--active-border);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 左側面板：編輯器 -->
+    <div id="editor-sidebar">
+        <h2>節點編輯器</h2>
+        <button class="btn btn-secondary" style="width:100%" onclick="window.location.href='index.html'">←
+            儲存並返回前台</button>
+        <hr>
+
+        <form id="node-form">
+            <div class="form-group">
+                <label for="f-id">節點 ID (唯一英文或數字)</label>
+                <input type="text" id="f-id" required placeholder="例如: advanced-rag">
+            </div>
+            <div class="form-group">
+                <label for="f-label">顯示名稱 (Label)</label>
+                <input type="text" id="f-label" required placeholder="例如: 進階 RAG">
+            </div>
+            <div class="form-group">
+                <label>座標位置 (%)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="f-x" placeholder="X (0-100)" min="0" max="100" required>
+                    <input type="number" id="f-y" placeholder="Y (0-100)" min="0" max="100" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="f-req">前置技能節點 ID</label>
+                <input type="text" id="f-req" placeholder="例如: rag, finetune (用逗號分隔)">
+                <div class="hint">若為起點請留空。</div>
+            </div>
+            <div class="form-group">
+                <label for="f-desc">說明 (Description)</label>
+                <textarea id="f-desc" placeholder="輸入節點介紹內容..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>學習資源</label>
+                <div id="resources-list">
+                    <!-- 動態生成的資源輸入列會放在這裡 -->
+                </div>
+                <button type="button" id="btn-add-res">＋ 新增學習資源</button>
+            </div>
+
+            <button type="submit" class="btn" id="btn-save">儲存節點</button>
+            <button type="button" class="btn btn-secondary" id="btn-clear">清空表單 (新增)</button>
+            <button type="button" class="btn btn-danger" id="btn-delete" style="display:none;">刪除節點</button>
+
+            <div id="action-msg" style="color: #4fd1c5; font-size: 0.9rem; margin-top: 10px;"></div>
+        </form>
+
+        <hr>
+        <h3>資料管理</h3>
+        <p class="hint" style="margin-bottom:10px;">將整張星盤匯出成文字分享，或貼上別人分享的代碼覆蓋目前的星盤。</p>
+        <button class="btn btn-secondary" id="btn-export">匯出星盤 JSON 向下複製</button>
+        <textarea id="io-area" rows="4" placeholder="在此貼上星盤 JSON..."></textarea>
+        <button class="btn btn-secondary" id="btn-import">匯入 JSON (將覆蓋全部)</button>
+        <button class="btn btn-danger" id="btn-reset" style="margin-top:10px;">重置還原為預設星盤</button>
+
+    </div>
+
+    <!-- 可拖曳的寬度調整把手 -->
+    <div id="resize-handle"></div>
+
+    <!-- 右側面板：預覽區 -->
+    <div id="app">
+        <h1 class="title" style="margin: 0; padding: 1rem 0; font-size: 1.5rem;">預覽星盤 (點擊節點編輯)</h1>
+        <div id="tree-container" id="preview-container">
+            <!-- SVG 畫布 -->
+            <svg id="edges-container"></svg>
+            <!-- 節點容器 -->
+            <div id="nodes-container"></div>
+        </div>
+    </div>
+
+    <script src="editor.js"></script>
+    <script>
+        // === 側邊欄寬度拖曳調整 ===
+        const resizeHandle = document.getElementById('resize-handle');
+        const sidebar = document.getElementById('editor-sidebar');
+        let isResizing = false;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            resizeHandle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            let newWidth = e.clientX;
+            // 限制最小與最大寬度
+            newWidth = Math.max(280, Math.min(700, newWidth));
+            sidebar.style.width = `${newWidth}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                resizeHandle.classList.remove('active');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+    </script>

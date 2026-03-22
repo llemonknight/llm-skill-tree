@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM 學習地圖星盤</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- 引入 Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Noto+Sans+TC:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- 頂部導覽列 -->
+    <div class="nav-bar">
+        <button class="nav-link" onclick="exportProgress()">📤 匯出進度</button>
+        <button class="nav-link" onclick="importProgress()">📥 匯入進度</button>
+        <button class="nav-link" onclick="resetProgress()">🔄 重置進度</button>
+    </div>
+
+    <div id="app">
+        <h1 class="title">LLM Learning Roadmap</h1>
+        <div id="tree-container">
+            <!-- 用於繪製連線的 SVG 畫布 -->
+            <svg id="edges-container"></svg>
+            <!-- 用於放置節點的容器 -->
+            <div id="nodes-container"></div>
+            <!-- Hover Tooltip 卡片 -->
+            <div id="tooltip" class="tooltip hidden"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
