@@ -5,11 +5,15 @@
         "x": 50,
         "y": 80,
         "requires": [],
-        "description": "學習如何撰寫有效的提示詞與大語言模型溝通，這是操作所有 LLM 的核心起點。",
+        "description": "學習如何撰寫有效的提示詞與大語言模型溝通，這是操作所有 LLM 的核心起點。\n事實上這是非常的重要，包含後面的 function calling, skill 其實本質上都是對 LLM 的prompt操作",
         "resources": [
             {
                 "name": "Prompt Engineering Guide",
                 "url": "https://www.promptingguide.ai/zh"
+            },
+            {
+                "name": "【生成式人工智慧與機器學習導論2025】第 2 講：上下文工程 (Context Engineering) — AI Agent 背後的關鍵技術",
+                "url": "https://www.youtube.com/watch?v=lVdajtNpaGI&t=2s"
             }
         ]
     },
@@ -21,21 +25,25 @@
         "requires": [
             "prompt"
         ],
-        "description": "Retrieval-Augmented Generation (檢索增強生成)。結合外部知識庫，讓 LLM 回答更精準、減少幻覺。",
+        "description": "Retrieval-Augmented Generation (檢索增強生成)。結合外部知識庫，讓 LLM 回答更精準、減少幻覺。必須要理解: 何謂embedding model, context(文本, 知識等) chunk, prompt 之間在 RAG 這個系統中相互的關係及影響。",
         "resources": [
             {
                 "name": "LangChain RAG Tutorial",
                 "url": "https://python.langchain.com/docs/use_cases/question_answering/"
+            },
+            {
+                "name": "理解透这两个基本概念，你看所有AI都将豁然开朗",
+                "url": "https://www.youtube.com/watch?v=kDmUHCKmA8E"
             }
         ]
     },
     {
         "id": "agent",
         "label": "AGENT",
-        "x": 30,
-        "y": 20,
+        "x": 15,
+        "y": 19,
         "requires": [
-            "rag"
+            "function-calling"
         ],
         "description": "具備自主規劃、使用工具能力的 AI 代理。能拆解複雜任務並自動化執行。",
         "resources": [
@@ -46,14 +54,18 @@
             {
                 "name": "LangGraph Documentation",
                 "url": "https://python.langchain.com/docs/langgraph"
+            },
+            {
+                "name": "【人工智能】OpenClaw源代码解析 | 本地网关时代 | TypeScript | Pi SDK | Agent Loop执行循环 | 消息路由 | 提示词构建 | 自动化任务分发 | 会话持久化",
+                "url": "https://youtu.be/5HR8oMSz-XY?si=kSbtWB9tNFwetQmN"
             }
         ]
     },
     {
         "id": "finetune",
         "label": "FINE TUNE",
-        "x": 70,
-        "y": 35,
+        "x": 71,
+        "y": 34,
         "requires": [
             "rag"
         ],
@@ -64,5 +76,52 @@
                 "url": "https://huggingface.co/docs/peft/index"
             }
         ]
+    },
+    {
+        "id": "function-calling",
+        "label": "function / tool-calling",
+        "x": 34,
+        "y": 36,
+        "requires": [
+            "rag"
+        ],
+        "description": "大語言模型可以\"使用\"模型以外的工具，例如:操作Email, 行事曆, 操作terminal等。需要了解為何大語言模型執行function/tool calling的底層原理，後續再AGENT建設及vibe coding 理解原理可以避免採坑以免完全無法控制 LLM 的決策與行為",
+        "resources": [
+            {
+                "name": "【生成式AI時代下的機器學習(2025)】第二講：一堂課搞懂 AI Agent 的原理 (AI如何透過經驗調整行為、使用工具和做計劃)",
+                "url": "https://www.youtube.com/watch?v=M2Yg1kwPpts&t=1063s"
+            },
+            {
+                "name": "【生成式人工智慧與機器學習導論2025】第 2 講：上下文工程 (Context Engineering) — AI Agent 背後的關鍵技術",
+                "url": "https://www.youtube.com/watch?v=lVdajtNpaGI&t=2s"
+            }
+        ]
+    },
+    {
+        "id": "Multimodal LLMs",
+        "label": "Multimodal LLMs",
+        "x": 11,
+        "y": 57,
+        "requires": [
+            "rag"
+        ],
+        "description": "",
+        "resources": [
+            {
+                "name": "Understanding Multimodal LLMs",
+                "url": "https://magazine.sebastianraschka.com/p/understanding-multimodal-llms"
+            }
+        ]
+    },
+    {
+        "id": "vibe coding",
+        "label": "vibe coding",
+        "x": 5,
+        "y": 36,
+        "requires": [
+            "function-calling"
+        ],
+        "description": "",
+        "resources": []
     }
 ]
