@@ -197,7 +197,7 @@ function selectNodeWithoutRerender(id) {
 
     // 將資料填寫進表單
     document.getElementById('f-id').value = node.id;
-    document.getElementById('f-id').readOnly = true;
+    document.getElementById('f-id').readOnly = false;
     document.getElementById('f-label').value = node.label;
     document.getElementById('f-x').value = node.x;
     document.getElementById('f-y').value = node.y;
@@ -222,8 +222,8 @@ function selectNode(id) {
 
     // 將資料填寫進表單
     document.getElementById('f-id').value = node.id;
-    // 編輯時不給改ID，免得依賴亂掉 (或可以改但要連動改requires，這邊簡化先設為 readonly)
-    document.getElementById('f-id').readOnly = true;
+    // 現在允許修改 ID，會自動連動修改其他節點的 requires
+    document.getElementById('f-id').readOnly = false;
 
     document.getElementById('f-label').value = node.label;
     document.getElementById('f-x').value = node.x;
@@ -239,13 +239,25 @@ function selectNode(id) {
     renderPreview();
 }
 
-document.getElementById('btn-clear').addEventListener('click', () => {
+document.getElementById('btn-add-node').addEventListener('click', () => {
     selectedNodeId = null;
     form.reset();
+    
+    // 預設帶入初始值
+    const newId = 'new-node-' + Math.floor(Math.random() * 1000);
+    document.getElementById('f-id').value = newId;
     document.getElementById('f-id').readOnly = false;
+    document.getElementById('f-label').value = '新節點名稱';
+    document.getElementById('f-x').value = 50;
+    document.getElementById('f-y').value = 50;
+    document.getElementById('f-req').value = '';
+    document.getElementById('f-desc').value = '';
+    
     document.getElementById('btn-delete').style.display = 'none';
     renderResourceRows([]);
     renderPreview();
+    
+    showMessage("✅ 已帶入新增節點的初始值，請編輯後按下上方的 '修改節點'");
 });
 
 form.addEventListener('submit', (e) => {
@@ -264,21 +276,38 @@ form.addEventListener('submit', (e) => {
     // 從結構化輸入欄位讀取學習資源
     const resources = getResourcesFromForm();
 
-    // 尋找是否已存在
-    const existingIndex = nodesData.findIndex(n => n.id === id);
-
     const newNode = { id, label, x, y, requires, description, resources };
 
-    if (existingIndex >= 0) {
-        // 更新
-        nodesData[existingIndex] = newNode;
+    if (selectedNodeId) { // 我們正在編輯一個「已存在」的節點
+        if (id !== selectedNodeId) {
+            // 如果用戶修改了 ID，確保新 ID 不會跟別人重複
+            if (nodesData.some(n => n.id === id)) {
+                alert("錯誤：這個 ID 已經被別人使用了！請使用不重複的 ID。");
+                return;
+            }
+            // 自動連動更新所有相依此節點(舊ID)的其他節點的 requires
+            nodesData.forEach(node => {
+                if (node.requires && node.requires.includes(selectedNodeId)) {
+                    node.requires = node.requires.map(req => req === selectedNodeId ? id : req);
+                }
+            });
+        }
+        
+        // 抓出原本的那筆資料並覆蓋
+        const existingIndex = nodesData.findIndex(n => n.id === selectedNodeId);
+        if (existingIndex >= 0) {
+            nodesData[existingIndex] = newNode;
+        }
     } else {
-        // 新增
+        // 全新的節點
+        if (nodesData.some(n => n.id === id)) {
+            alert("錯誤：這個 ID 已經存在！請使用不重複的 ID。");
+            return;
+        }
         nodesData.push(newNode);
     }
 
     selectedNodeId = id; // 維持選中狀態
-    document.getElementById('f-id').readOnly = true;
     document.getElementById('btn-delete').style.display = 'inline-block';
 
     saveData();
@@ -297,7 +326,7 @@ document.getElementById('btn-delete').addEventListener('click', () => {
             }
         });
 
-        document.getElementById('btn-clear').click();
+        document.getElementById('btn-add-node').click();
         saveData();
         renderPreview();
     }
@@ -323,7 +352,7 @@ document.getElementById('btn-import').addEventListener('click', () => {
         if (Array.isArray(parsed)) {
             nodesData = parsed;
             saveData();
-            document.getElementById('btn-clear').click();
+            document.getElementById('btn-add-node').click();
             renderPreview();
             showMessage("匯入成功！");
         } else {
@@ -390,4 +419,22 @@ function escapeHtml(str) {
 
 document.getElementById('btn-add-res').addEventListener('click', () => {
     addResourceRow('', '');
+});
+
+document.getElementById('btn-download-json').addEventListener('click', () => {
+    saveData();
+    const dataStr = JSON.stringify(nodesData, null, 2);
+    
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data.json';
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showMessage("✅ 已自動產出並下載 data.json！可以直接拖曳到 GitHub 覆蓋舊檔。");
 });
