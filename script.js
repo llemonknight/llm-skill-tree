@@ -212,28 +212,61 @@ let currentPanY = 0;
 
 const treeContainer = document.getElementById('tree-container');
 
+function startPan(x, y) {
+    isPanning = true;
+    panStartX = x;
+    panStartY = y;
+    treeContainer.classList.add('panning');
+}
+
+function doPan(x, y) {
+    const deltaX = x - panStartX;
+    const deltaY = y - panStartY;
+    treeContainer.style.transform = `translate(${currentPanX + deltaX}px, ${currentPanY + deltaY}px)`;
+}
+
+function endPan(x, y) {
+    currentPanX += x - panStartX;
+    currentPanY += y - panStartY;
+    isPanning = false;
+    treeContainer.classList.remove('panning');
+}
+
+// === 滑鼠支援 (DeskTop) ===
 treeContainer.addEventListener('mousedown', (e) => {
     if (e.target.closest('.node') || e.target.closest('.tooltip')) return;
-    isPanning = true;
-    panStartX = e.clientX;
-    panStartY = e.clientY;
-    treeContainer.classList.add('panning');
+    startPan(e.clientX, e.clientY);
     e.preventDefault();
 });
 
 document.addEventListener('mousemove', (e) => {
     if (!isPanning) return;
-    const deltaX = e.clientX - panStartX;
-    const deltaY = e.clientY - panStartY;
-    treeContainer.style.transform = `translate(${currentPanX + deltaX}px, ${currentPanY + deltaY}px)`;
+    doPan(e.clientX, e.clientY);
 });
 
 document.addEventListener('mouseup', (e) => {
     if (!isPanning) return;
-    currentPanX += e.clientX - panStartX;
-    currentPanY += e.clientY - panStartY;
-    isPanning = false;
-    treeContainer.classList.remove('panning');
+    endPan(e.clientX, e.clientY);
+});
+
+// === 觸控支援 (Mobile) ===
+treeContainer.addEventListener('touchstart', (e) => {
+    // 只有單指觸控且沒有點在節點上時觸發畫面平移
+    if (e.target.closest('.node') || e.target.closest('.tooltip') || e.touches.length !== 1) return;
+    startPan(e.touches[0].clientX, e.touches[0].clientY);
+});
+
+document.addEventListener('touchmove', (e) => {
+    if (!isPanning || e.touches.length !== 1) return;
+    doPan(e.touches[0].clientX, e.touches[0].clientY);
+    e.preventDefault(); // 防止發動手機原生的下拉重新整理或頁面捲動效應
+}, { passive: false });
+
+document.addEventListener('touchend', (e) => {
+    if (!isPanning) return;
+    if (e.changedTouches.length > 0) {
+        endPan(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    }
 });
 
 // === 使用者學習進度匯出 / 匯入 ===

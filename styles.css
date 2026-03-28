@@ -81,9 +81,10 @@ body::before {
 #tree-container {
     flex: 1;
     position: relative;
+    /* 強制畫布維持一個最小寬高，在手機上就不會因為螢幕太窄而重疊 */
     width: 100%;
-    /* 設定一個虛擬的畫布大小，方便絕對定位 */
-    max-width: 1200px;
+    min-width: 1200px;
+    min-height: 800px;
     margin: 0 auto;
     overflow: visible;
     cursor: grab;
