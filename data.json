@@ -40,8 +40,8 @@
   {
     "id": "agent",
     "label": "AGENT",
-    "x": 15,
-    "y": 19,
+    "x": 26,
+    "y": 20,
     "requires": [
       "function-calling"
     ],
@@ -64,8 +64,8 @@
   {
     "id": "finetune",
     "label": "Fine Tune",
-    "x": 71,
-    "y": 34,
+    "x": 69,
+    "y": 38,
     "requires": [
       "rag"
     ],
@@ -80,8 +80,8 @@
   {
     "id": "function-calling",
     "label": "function / tool-calling",
-    "x": 34,
-    "y": 36,
+    "x": 38,
+    "y": 38,
     "requires": [
       "rag"
     ],
@@ -100,7 +100,7 @@
   {
     "id": "Multimodal LLMs",
     "label": "Multimodal LLMs",
-    "x": 11,
+    "x": 23,
     "y": 57,
     "requires": [
       "rag"
@@ -116,7 +116,7 @@
   {
     "id": "vibe coding",
     "label": "vibe coding",
-    "x": 6,
+    "x": 20,
     "y": 35,
     "requires": [
       "function-calling"
@@ -128,7 +128,7 @@
     "id": "LLM Evaluation",
     "label": "LLM Evaluation",
     "x": 50,
-    "y": 28,
+    "y": 25,
     "requires": [
       "rag"
     ],
