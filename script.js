@@ -245,31 +245,76 @@ function exportProgress() {
     };
     const jsonStr = JSON.stringify(data, null, 2);
 
-    // 複製到剪貼簿
-    navigator.clipboard.writeText(jsonStr).then(() => {
-        alert('✅ 學習進度已複製到剪貼簿！\n\n請將這段文字儲存下來，下次可以用「匯入進度」還原。');
-    }).catch(() => {
-        // Fallback: 如果剪貼簿 API 不可用，直接顯示
-        prompt('請複製以下內容以儲存您的學習進度：', jsonStr);
-    });
+    // 建立 Blob 產生 JSON 檔案
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    // 建立隱藏的下載連結
+    const a = document.createElement('a');
+    a.href = url;
+    
+    // 動態命名下載檔名加上日期
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.download = `llm-progress-${dateStr}.json`;
+    
+    // 觸發下載
+    document.body.appendChild(a);
+    a.click();
+    
+    // 清理
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert('✅ 學習進度存檔已成功下載！\n\n下次需要還原時，只要用「記事本」打開這個 .json 檔案，把裡面的文字全選並複製，然後貼到「匯入進度」中即可。');
 }
 
 function importProgress() {
-    const input = prompt('請貼上您之前匯出的學習進度 JSON：');
-    if (!input) return;
+    const useFile = confirm('您想要用上傳 .json 檔案的方式匯入嗎？\n\n- 按【確定】：選擇剛剛下載的 .json 檔案\n- 按【取消】：用手動貼上文字代碼的方式');
+    
+    if (useFile) {
+        // 1. 上傳檔案方式
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json';
+        fileInput.style.display = 'none';
+        
+        fileInput.onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                processImportData(event.target.result);
+            };
+            reader.readAsText(file);
+        };
+        
+        document.body.appendChild(fileInput);
+        fileInput.click();
+        document.body.removeChild(fileInput);
+    } else {
+        // 2. 貼上文字方式
+        const input = prompt('請貼上您之前匯出的學習進度 JSON 代碼：');
+        if (input) {
+            processImportData(input);
+        }
+    }
+}
 
+// 實際處理 JSON 解析的核心邏輯
+function processImportData(jsonString) {
     try {
-        const data = JSON.parse(input);
+        const data = JSON.parse(jsonString);
         if (data.unlockedNodes && Array.isArray(data.unlockedNodes)) {
             unlockedNodes = new Set(data.unlockedNodes);
             localStorage.setItem('llmSkillTreeUnlocked', JSON.stringify(data.unlockedNodes));
             updateNodeStates();
-            alert('✅ 學習進度已成功匯入！');
+            alert('✅ 學習進度已成功還原！');
         } else {
-            alert('❌ 格式不正確，請確認貼上的內容是有效的進度資料。');
+            alert('❌ 格式不正確，請確認上傳/貼上的選項是有效的進度資料。');
         }
     } catch (e) {
-        alert('❌ JSON 解析失敗，請確認貼上的內容是有效的進度資料。');
+        alert('❌ JSON 解析失敗，請確認檔案沒有損壞或格式錯誤。');
     }
 }
 
