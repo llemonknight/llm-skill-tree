@@ -74,6 +74,10 @@
       {
         "name": "Hugging Face PEFT",
         "url": "https://huggingface.co/docs/peft/index"
+      },
+      {
+        "name": "Unsloth微调DeepSeek-R1蒸馏模型 - 构建医疗专家模型",
+        "url": "https://www.youtube.com/watch?v=hngiv7xyjlw"
       }
     ]
   },
